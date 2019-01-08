@@ -12,24 +12,26 @@ output:
 
 Loading the data and creating a subset without the NAs for initial analysis:
 
-```{r loaddata}
+
+```r
 data_raw <- read.csv("activity.csv")
 data <- data_raw[which(!is.na(data_raw$steps)),]
 ```
 
 Load statistics:
 
-* `r nrow(data_raw)` rows loaded
+* 17568 rows loaded
 
-* `r nrow(data)` rows processed without NA
+* 15264 rows processed without NA
 
-* `r sum(data$steps)` total steps in dataset [control total]
+* 570608 total steps in dataset [control total]
 
 ## What is mean total number of steps taken per day?
 
 Summarizing the total steps per day for histogram plot, calculating median and mean:
 
-```{r totalsteps}
+
+```r
 data_sum <- aggregate(data$steps,by=list(data$date),FUN="sum")
 colnames(data_sum) <- c("date","steps")
 median_steps <- as.integer(median(data_sum$steps))
@@ -38,20 +40,23 @@ total_steps <- as.integer(sum(data_sum$steps))
 hist(data_sum$steps,breaks=50,col='blue',main="Histogram of Daily Steps",xlab="Total Daily Steps")
 ```
 
+![](PA1_template_files/figure-html/totalsteps-1.png)<!-- -->
+
 Summary of total steps per day:
 
-* `r total_steps` total steps in summarized dataset [control total]
+* 570608 total steps in summarized dataset [control total]
 
-* `r median_steps` median steps/day
+* 10765 median steps/day
 
-* `r mean_steps` mean steps/day
+* 10766 mean steps/day
 
 
 ## What is the average daily activity pattern?
 
 Plotting average steps per 5-minute internal over all days:
 
-``` {r dailyactivity}
+
+```r
 data_act <- aggregate(data$steps,by=list(data$interval),FUN="mean")
 colnames(data_act)<-c("interval","avg_steps")
 
@@ -61,16 +66,18 @@ max_interval <- data_act[which(data_act$avg_steps==max_avg_steps),]$interval
 plot(x=data_act$interval,y=data_act$avg_steps,type='l',xlab="Interval (mins)",ylab="Average Steps",col="blue",main="Average Number of Steps Per 5-Min Interval")
 ```
 
-5-minute interval with max average steps: `r max_interval` (`r max_avg_steps` steps)
+![](PA1_template_files/figure-html/dailyactivity-1.png)<!-- -->
+
+5-minute interval with max average steps: 835 (206.1698113 steps)
 
 ## Imputing missing values
 
 Create a dataset imputing the original missing (NA) values using the average steps for each interval recorded as NA
 
-Rows with missing data (NA): `r nrow(data_raw)-nrow(data)`
+Rows with missing data (NA): 2304
 
-```{r imputemissing}
 
+```r
 # Get the bad rows we excluded from the data, fill in NA with mean steps for that interval
 data_bad <- data_raw[which(is.na(data_raw$steps)),]
 for(i in 1:nrow(data_bad)) {
@@ -97,26 +104,28 @@ total_steps_imp_pct <- round(100*(total_steps_imp-total_steps)/total_steps,1)
 hist(data_sum_imp$steps,breaks=50,col='blue',main="Histogram of Daily Steps with NAs Imputed from Mean Steps for the Interval",xlab="Total Daily Steps")
 ```
 
+![](PA1_template_files/figure-html/imputemissing-1.png)<!-- -->
+
 Summary of imputed data set:
 
-* `r nrow(data_bad)` observations imputed
+* 2304 observations imputed
 
-* `r nrow(data_imp)` rows in final imputed dataset, `r nrow(still_bad)` rows remaining with NA steps
+* 17568 rows in final imputed dataset, 0 rows remaining with NA steps
 
-* `r total_steps_imp` total steps vs. `r total_steps` with NAs removed (`r total_steps_imp_pct`% impact)
+* 656737 total steps vs. 570608 with NAs removed (15.1% impact)
 
-* `r median_steps_imp` median steps/day imputed vs. `r median_steps` with NAs removed (`r median_steps_imp_pct`% impact)
+* 10766 median steps/day imputed vs. 10765 with NAs removed (0% impact)
 
-* `r mean_steps_imp` mean steps/day imputed vs. `r mean_steps` with NAs removed (`r mean_steps_imp_pct`% impact)
+* 10766 mean steps/day imputed vs. 10766 with NAs removed (0% impact)
 
-Conclusion - imputing the NA values in the dataset has little or no difference on the median and mean daily steps (as expected since imputed values were based on mean), though has large impact (`r total_steps_imp_pct`%) on total number of steps
+Conclusion - imputing the NA values in the dataset has little or no difference on the median and mean daily steps (as expected since imputed values were based on mean), though has large impact (15.1%) on total number of steps
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Adding factor for Weekday vs. Weekend days to look at difference in average steps per interval for each case:
 
-```{r weekdays}
 
+```r
 data_imp$weekend <- factor(grepl("S(at|un)",weekdays(as.Date(data_imp$date),abbr=TRUE)))
 
 data_wk <- aggregate(data_imp$steps,by=list(data_imp$interval,data_imp$weekend),FUN="mean")
@@ -129,5 +138,6 @@ g <- g+ facet_grid(rows = vars(weekend), labeller=to_weekend)
 g <- g + labs(x="Interval (mins)",y="Average Steps")
 g <- g + labs(title = "Average Number of Steps Per Interval, Weekend vs. Weekday view")
 print(g)
-
 ```
+
+![](PA1_template_files/figure-html/weekdays-1.png)<!-- -->
